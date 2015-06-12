@@ -162,7 +162,8 @@ shinyServer(
       if(input$display_group == 3) groups <- phytomeres$age
       if(input$display_group == 4) groups <- phytomeres$group
       
-      nodes <- data.frame(id = phytomeres$id, 
+      link <<- panicule
+      nodes <<- data.frame(id = phytomeres$id, 
                           group=groups, 
                           title=paste(phytomeres$group, 
                                       "</br> Order = ", phytomeres$order,
@@ -170,16 +171,16 @@ shinyServer(
                                       "</br> Age = ", phytomeres$age))
       
       if(!input$hierarchical){
-        network <- visNetwork(nodes, panicule, width = "100%", height="500", legend=T) %>% 
-          visEdges(style = "arrow") %>%
+        network <- visNetwork(nodes, link, width = "100%", height="500", legend=T) %>% 
+          visEdges(arrow = 'to') %>%
           visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>% 
-          visOptions(navigation = TRUE)
+          visInteraction(navigationButtons = TRUE)
       }else{      
         network <- visNetwork(nodes, panicule, width = "100%",height="500", legend=T) %>% 
-          visEdges(style = "arrow") %>%
-          visHierarchicalLayout(layout = "direction") %>%
+          visEdges(arrow = 'to') %>%
+          visHierarchicalLayout() %>%
           visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>% 
-          visOptions(navigation = TRUE)
+          visInteraction(navigationButtons = TRUE)
       }
       
       
@@ -208,160 +209,6 @@ shinyServer(
       return(network);
       
     })
-    
-    
-    
-    
-    Results2 <- reactive({
-      
-      if(input$runPSim == 0){return()}
-
-      # Threshold values for the capacity to branch and elongate
-      branch_thrshld <- 10
-      elong_thrshld <- 5
-      
-      # Table contaning the building of the nodes over time
-      phytomeres <- data.frame(id=1, 
-                               age=1, 
-                               parent=-1, 
-                               floral=F, 
-                               time=1, 
-                               canBranch=F, 
-                               canElongate=T, 
-                               order=0, 
-                               maturity=input$maturation, 
-                               branched=F, 
-                               elongated=F,
-                               apex = T)
-      
-      panicule <-  data.frame(from=numeric(), 
-                              to=numeric(), 
-                              order = numeric())
-         
-      # Loop over the simulation time
-      for(i in 1:input$time_in_sim){
-        
-        # Get the total number of existing nodes
-        n_nodes <- nrow(phytomeres)
-        
-        # Loop over the existing phytomeres
-        for(j in 1:n_nodes){
-          
-          # Udate the different variables
-          phytomeres$age[j] <- phytomeres$age[j]+1 
-          phytomeres$maturity[j] <- phytomeres$maturity[j] * input$maturation    
-          
-          # Update the branching and elongation capabilities of the phytomere
-          phytomeres$canBranch[j] <- (phytomeres$maturity[j] >= branch_thrshld && !phytomeres$branched[j])
-          phytomeres$canElongate[j] <- (phytomeres$maturity[j] >= elong_thrshld && !phytomeres$elongated[j])    
-          
-          message(paste(i, ":", j, " = branched:", phytomeres$branched[j], 
-                        " / canBranch", phytomeres$canBranch[j],
-                        " / maturation", phytomeres$maturity[j]))
-          
-          if(i > input$benchmark1 & phytomeres$order[j] == 0){
-                phytomeres$canBranch[j] <- F
-                phytomeres$canElongate[j] <- F
-          } 
-          if(i <= input$benchmark1 & phytomeres$order[j] > 0){
-            phytomeres$canBranch[j] <- F
-            phytomeres$canElongate[j] <- F
-          }
-          
-          
-          # If the phytomere can elongate, it can create a new phytomere behind him 
-          if(phytomeres$canElongate[j]){          
-            new_id = max(phytomeres$id)+1
-            
-            new_phyto <- data.frame(
-              id=new_id, 
-              age=1, 
-              parent=phytomeres$id[j], 
-              floral=F, 
-              time=i, 
-              canBranch=T, 
-              canElongate=T, 
-              order=phytomeres$order[j], 
-              maturity=input$maturation, 
-              branched=F, 
-              elongated=F)
-            
-            new_pan <- data.frame(
-              from=phytomeres$id[j], 
-              to=new_id,
-              order = phytomeres$order[j])
-            
-            # If the phytomere has been elongated it cannot elongate anymore NEED TO BE CHANGED
-            phytomeres$elongated[j] = T       
-            
-            panicule <- rbind(panicule, new_pan)
-            phytomeres <- rbind(phytomeres, new_phyto)
-          }
-          
-          # Branching process. Is triggered only if the ode has the capacity to branch
-          if(phytomeres$canBranch[j]){
-            
-            # Create a new identifier (increment from the exiting ones)
-            new_id = max(phytomeres$id)+1
-            
-            # Create a new phytomeres
-            new_phyto <- data.frame(
-              id=new_id, 
-              age=1, 
-              parent=phytomeres$id[j], 
-              floral=F, 
-              time=i, 
-              canBranch=F, 
-              canElongate=F, 
-              order=phytomeres$order[j]+1, 
-              maturity=input$maturation, 
-              branched=F, 
-              elongated=F)
-            
-            # Create a new connection
-            new_pan <- data.frame(
-              from=phytomeres$id[j], 
-              to=new_id, 
-              order = phytomeres$order[j])
-
-            # If a phytomeresmer is bracnhed, it cannot branch anymore
-            phytomeres$branched[j] <- T
-            
-            # Update the paniculeicule and phytomeresmere tables
-            panicule <- rbind(panicule, new_pan)
-            phytomeres <- rbind(phytomeres, new_phyto)
-          }
-        }
-        
-    
-      }
-      
-
-      message("------------------")
-     
-      groups <- phytomeres$order
-      if(input$group_age) groups <- phytomeres$age
-      nodes <- data.frame(id = phytomeres$id, 
-                          group=groups, 
-                          title=paste(phytomeres$id, ": ", phytomeres$canBranch, " / ", phytomeres$branched, " / ", phytomeres$maturity))
-      
-      edges <- data.frame(from = panicule$from, to = panicule$to)
-      
-      if(!input$hierarchical){
-        network <<- visNetwork(nodes, edges, width = "100%", legend=T) %>% 
-          visEdges(style = "arrow") %>%
-          visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE)
-      }else{      
-        network <<- visNetwork(nodes, edges, width = "100%", legend=T) %>% 
-          visEdges(style = "arrow") %>%
-          visHierarchicalLayout(layout = "direction") %>%
-          visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE)
-      }
-      
-      return(network);
-      
-    })
-  
     
     # Plot the different growth factors
     output$visnetwork <- renderVisNetwork({
