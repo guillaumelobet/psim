@@ -148,9 +148,16 @@ shinyServer(
           to = phytomeres$id[j], 
           branch_id = phytomeres$branch_id[j])
         
-        panicule <- rbind(panicule, new_pan)  
+        panicule <- rbind(panicule, new_pan) 
+        
       }
-      
+      # Create a table containing the connections
+      # This is needed for the display of the network
+      phytomeres$spike <- "spikelet"      
+      for(j in 1:nrow(phytomeres)){
+        message(nrow(panicule[panicule$from == phytomeres$id[j],]))
+        if(nrow(panicule[panicule$from == phytomeres$id[j],]) == 2) phytomeres$spike[j] <- "branc"
+      }
       
       message("------------------")
       
@@ -160,7 +167,9 @@ shinyServer(
       if(input$display_group == 1) groups <- phytomeres$order
       if(input$display_group == 2) groups <- phytomeres$branch_id
       if(input$display_group == 3) groups <- phytomeres$age
-      if(input$display_group == 4) groups <- phytomeres$group
+      if(input$display_group == 4) groups <- phytomeres$group      
+      if(input$display_group == 5) groups <- phytomeres$spike
+      
       
       link <<- panicule
       nodes <<- data.frame(id = phytomeres$id, 

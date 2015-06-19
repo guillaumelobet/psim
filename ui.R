@@ -41,8 +41,9 @@ shinyUI(fluidPage(
                   choices = list("Branch order" = 1, 
                                  "Branch ID" = 2,
                                  "Branch age" = 3,
-                                 "Apexes" = 4
-                                 ), selected = 1),
+                                 "Apexes" = 4,
+                                 "Spikelets" = 5
+                                ), selected = 1),
       
       # Display the panicule as a hierechical network
       checkboxInput("hierarchical", label = "Hierachical network", value = T),
