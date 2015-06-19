@@ -18,11 +18,11 @@ shinyUI(fluidPage(
       tags$hr(),      
       
       # Total time of the simulation. So far, does not have any biological significance.
-      sliderInput("time_in_sim", "Time in simulation:", min=0, max=10, value=4),
+      sliderInput("time_in_sim", "Time in simulation:", min=0, max=15, value=4),
       
       # Maturation speed of the meristems. Can be seen as a proxi of cellular proliferation. 
       # Maturation follows an exponential rule (the more cell you have, the more you divide.)
-      sliderInput("maturation", "Maturation speed:", min=1, max=3, value=1.1, step = 0.1),
+      sliderInput("maturation", "Maturation speed:", min=1, max=5, value=1.1, step = 0.1),
 
       # The time during the rachis develops. During the time, primary branch are formed. 
       # When the time is passed, the rachis stops growing. At that time, the primary branches 
