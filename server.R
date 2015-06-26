@@ -58,7 +58,7 @@ shinyServer(
           # Are we in the develpmental phase of the rachis. If yes, only the rachis can develop.
           # If not ,the rachis stops developing and the branches take over.
           if(i > input$benchmark1 & phytomeres$order[j] == 0){
-            phytomeres$canBranch[j] <- F
+            #phytomeres$canBranch[j] <- F
             phytomeres$canElongate[j] <- F
           } 
           if(i <= input$benchmark1 & phytomeres$order[j] > 0){
@@ -155,8 +155,7 @@ shinyServer(
       # This is needed for the display of the network
       phytomeres$spike <- "spikelet"      
       for(j in 1:nrow(phytomeres)){
-        message(nrow(panicule[panicule$from == phytomeres$id[j],]))
-        if(nrow(panicule[panicule$from == phytomeres$id[j],]) == 2) phytomeres$spike[j] <- "branc"
+        if(nrow(panicule[panicule$from == phytomeres$id[j],]) == 2) phytomeres$spike[j] <- "branch"
       }
       
       message("------------------")
@@ -170,6 +169,8 @@ shinyServer(
       if(input$display_group == 4) groups <- phytomeres$group      
       if(input$display_group == 5) groups <- phytomeres$spike
       
+      n_branch <<- length(unique(phytomeres$branch_id))
+      n_spike <<- nrow(phytomeres[phytomeres$spike == "spikelet",])
       
       link <<- panicule
       nodes <<- data.frame(id = phytomeres$id, 
@@ -225,6 +226,21 @@ shinyServer(
       Results()
     })
        
+    
+    
+    #------------------------------------------------------
+    ## Output a warning message
+    output$caption1 <- renderUI( {
+      if(input$runPSim== 0){return()}
+      
+      message  <- ""
+      message <- paste(message, "<b>Number of branches</b> = ",n_branch)
+      message <- paste(message, "</br><b>Number of spikelets</b> = ",n_spike)
+      HTML(message)
+
+    })    
+    
+    
     
   }
 )

@@ -22,7 +22,7 @@ shinyUI(fluidPage(
       
       # Maturation speed of the meristems. Can be seen as a proxi of cellular proliferation. 
       # Maturation follows an exponential rule (the more cell you have, the more you divide.)
-      sliderInput("maturation", "Maturation speed:", min=1, max=5, value=1.1, step = 0.1),
+      sliderInput("maturation", "Maturation speed:", min=2, max=3, value=2, step = 0.05),
 
       # The time during the rachis develops. During the time, primary branch are formed. 
       # When the time is passed, the rachis stops growing. At that time, the primary branches 
@@ -62,6 +62,7 @@ shinyUI(fluidPage(
       tabsetPanel(     
         tabPanel("Panicule network",
                  visNetworkOutput("visnetwork"),
+                 h6(htmlOutput("caption1")),                  
                 value=1
         ),
         id="tabs1"
